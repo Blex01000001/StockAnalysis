@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="utf-8" />
+    <title>年報概況</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #3b82f6;
+            --bg: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: 'Inter', "Microsoft JhengHei", sans-serif;
+        }
+
+        #InputArea {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #fff;
+            padding: 5px 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        #QueryArea {
+            display: flex;
+            gap: 8px;
+            background: #fff7ed;
+            padding: 8px 12px;
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        input,
+        button {
+            font-size: 16px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            outline: none;
+        }
+
+        button {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .page {
+            padding: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .chart-card h3 {
+            text-align: center;
+            /* ⭐ 置中 */
+            padding: 1px 0 8px 0;
+            /* ⭐ 上 下 padding */
+            margin: 0 0 1px 0;
+            /* 與表格拉開距離 */
+            font-size: 20px;
+            /* 標題字體大小 */
+            font-weight: 600;
+            letter-spacing: 1px;
+            /* 字距（可選） */
+        }
+
+        /* table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 20px;
+        } */
+
+        /* ===== 表格基礎 ===== */
+        .annual-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        /* ===== 表頭 ===== */
+        .annual-table thead th {
+            background-color: #f0f0f0;
+            /* 標題列固定顏色 */
+            font-weight: 600;
+            padding: 4px 0px;
+            /*  */
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+        }
+
+        /* ===== 表身基本 ===== */
+        .annual-table tbody td {
+            padding: 6px 6px;
+            text-align: center;
+        }
+
+        /* 年度欄置中 */
+        .annual-table tbody td:first-child {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* ===== 條紋底色 ===== */
+        .annual-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+            /* 單數列 */
+        }
+
+        .annual-table tbody tr:nth-child(even) {
+            background-color: #e3f2fd;
+            /* 雙數列（淡藍灰） */
+        }
+
+        /* ===== Hover 高亮（優先權最高） ===== */
+        .annual-table tbody tr:hover {
+            background-color: #ffe3e3 !important;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tr:hover {
+            background: #f0f7ff;
+        }
+
+        .pos {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .neg {
+            color: #22c55e;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="InputArea">
+        <div id="QueryArea">
+            <input type="text" id="inputStockId" placeholder="股票代號">
+            <button onclick="addAnnualTable()">生成年報概況</button>
+        </div>
+    </div>
+    <div class="page" id="TableList"></div>
+    <script>
+        const apiBase = "http://localhost:7278";
+        async function addAnnualTable() {
+            const stockId = document.getElementById("inputStockId").value.trim();
+            if (!stockId) {
+                alert("請輸入股票代號");
+                return;
+            }
+
+            const res = await fetch(`${apiBase}/stock/annual-review?stockId=${stockId}`);
+            if (!res.ok) {
+                alert("API 錯誤");
+                return;
+            }
+
+            const rows = await res.json();
+            renderAnnualTable(stockId, rows);
+        }
+
+        function renderAnnualTable(stockId, rows) {
+            const tableList = document.getElementById("TableList");
+
+            const card = document.createElement("div");
+            card.className = "chart-card";
+
+            let html = `
+            <h3>${stockId} 年度績效總覽</h3>
+            <table class="annual-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">年度</th>
+                        <th rowspan="2">年初開盤</th>
+                        <th rowspan="2">年尾收盤</th>
+                        <th rowspan="2">現金股利</th>
+                        <th rowspan="2">股票股利</th>
+                        <th colspan="2">ROI</th>
+                        <th colspan="2">CAGR</th>
+                    </tr>
+                    <tr>
+                        <th>不含息</th>
+                        <th>含息</th>
+                        <th>5年</th>
+                        <th>10年</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            for (const r of rows) {
+                html += `
+                <tr>
+                    <td>${r.year}</td>
+                    <td>${r.startOpen.toFixed(2)}</td>
+                    <td>${r.endClose.toFixed(2)}</td>
+                    <td>${r.cashDividend === 0 ? '-' : r.cashDividend.toFixed(2)}</td>
+                    <td>${r.stockDividend === 0 ? '-' : r.stockDividend.toFixed(2)}</td>
+
+                    <td class="${r.capitalGainRate >= 0 ? 'pos' : 'neg'}">
+                        ${r.capitalGainRate.toFixed(1)}
+                    </td>                
+                    <td class="${r.totalReturnRate >= 0 ? 'pos' : 'neg'}">
+                        ${r.totalReturnRate.toFixed(1)}
+                    </td>
+                    <td class="${r.returnFiveRate >= 0 ? 'pos' : 'neg'}">
+                        ${r.returnFiveRate === 0 ? '-' : r.returnFiveRate.toFixed(1)}
+                    </td>                
+                    <td class="${r.returnTenRate >= 0 ? 'pos' : 'neg'}">
+                        ${r.returnTenRate === 0 ? '-' : r.returnTenRate.toFixed(1)}
+                    </td>                
+                </tr>
+
+                `;
+            }
+
+            html += `</tbody></table>`;
+            card.innerHTML = html;
+
+            // ⭐ 每次都插在最上面（比照 K 線）
+            tableList.prepend(card);
+        }
+
+    </script>
+</body>
+
+</html>

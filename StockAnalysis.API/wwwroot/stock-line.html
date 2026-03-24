@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="utf-8" />
+    <title>台股報酬折線圖</title>
+
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+            background: #f0f2f5;
+        }
+
+        /* 整條工具列 */
+        #InputArea {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #ffffff;
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #QueryArea,
+        #UpdateArea {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        #QueryArea {
+            background: #e3f2fd;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        #UpdateArea {
+            background: #e8f5e9;
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        input,
+        select,
+        button {
+            padding: 4px 6px;
+        }
+
+        .page {
+            max-width: 1200px;
+            margin: auto;
+            padding: 16px;
+        }
+
+        #chart {
+            width: 100%;
+            height: 500px;
+            /* ← 關鍵 */
+        }
+
+        .chart-card {
+            background: #ffffff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 8px 8px 16px 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-box {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="InputArea">
+        <div id="QueryArea">
+            <input type="text" id="inputYearField" placeholder="年份" style="width:70px;">
+            <input type="text" id="inputStockIDField" placeholder="股票代號" style="width:70px;">
+            <input type="text" id="inputDaysField" placeholder="比較天數" style="width:70px;">
+            <button class="search-btn" onclick="search()">Query</button>
+        </div>
+    </div>
+    <div class="page">
+        <div id="chartList"></div>
+    </div>
+
+    <script>
+        const apiBase = "http://localhost:7278";
+        //const chart = echarts.init(document.getElementById("chart"));
+
+        async function search() {
+            const stockId = document.getElementById("inputStockIDField").value;
+            const Year = document.getElementById("inputYearField").value;
+            const days = document.getElementById("inputDaysField").value;
+
+            if (!stockId) {
+                alert("請輸入股票代號");
+                return;
+            }
+
+            const res = await fetch(
+                `${apiBase}/chart/roi/line-chart?stockId=${stockId}&Year=${Year}&Days=${days}`
+            );
+
+            const data = await res.json();
+            renderChart(stockId, data.result);
+            console.log("finish");
+        }
+
+        function renderChart(stockId, seriesList) {
+
+            if (!seriesList || seriesList.length === 0) {
+                return;
+            }
+
+            // === 1. 建立 DOM ===
+            const chartList = document.getElementById("chartList");
+
+            const card = document.createElement("div");
+            card.className = "chart-card";
+
+            const chartDiv = document.createElement("div");
+            chartDiv.className = "chart-box";
+
+            card.appendChild(chartDiv);
+
+            // 新的插在最上面
+            chartList.prepend(card);
+
+            // === 2. 初始化 echarts ===
+            const chart = echarts.init(chartDiv);
+
+            // x 軸
+            const xAxisData = seriesList[0].points.map(p => p.x);
+
+            const series = seriesList.map(s => ({
+                name: s.name,
+                type: "line",
+                smooth: false,
+                symbol: "none",
+                lineStyle: { width: 2 },
+                data: s.points.map(p => p.y)
+            }));
+
+            // === 3. 設定 option ===
+            chart.setOption({
+                title: {
+                    text: `${stockId} ROI 折線圖`,
+                    left: "center",
+                    top: 10
+                },
+                tooltip: {
+                    trigger: "axis",
+                    valueFormatter: value => `${(value * 100).toFixed(2)}%`
+                },
+                legend: {
+                    top: 40,
+                    left: "center"
+                },
+                grid: {
+                    top: 90,
+                    left: 70,
+                    right: 30,
+                    bottom: 60
+                },
+                xAxis: {
+                    type: "category",
+                    data: xAxisData,
+                    boundaryGap: false,
+                    axisLabel: {
+                        fontSize: 11,
+                        rotate: 45,          // 日期多時必備
+                        margin: 12
+                    },
+                    //name: "日期",
+                    nameLocation: "middle",
+                    nameGap: 45,
+                    nameTextStyle: {
+                        fontSize: 12
+                    }
+                },
+                yAxis: {
+                    type: "value",
+                    scale: true,
+                    axisLabel: {
+                        formatter: value => `${(value * 100).toFixed(0)}%`,
+                        fontSize: 11
+                    },
+                    name: "報酬率 (%)",
+                    nameLocation: "middle",
+                    nameGap: 55,
+                    nameTextStyle: {
+                        fontSize: 12
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            type: "dashed",
+                            opacity: 0.6
+                        }
+                    }
+                },
+                series: series
+            });
+        }
+    </script>
+
+</body>
+
+</html>

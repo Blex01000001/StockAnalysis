@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="utf-8" />
+    <title>資料更新管理</title>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #3b82f6;
+            --bg: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .admin-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--primary);
+            font-weight: 700;
+            border-left: 4px solid var(--accent);
+            padding-left: 12px;
+        }
+
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #475569;
+            font-size: 14px;
+        }
+
+        select,
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #fdfdfd;
+        }
+
+        .checkbox-group {
+            font-size: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            grid-column: span 2;
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .checkbox-item {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .submit-btn {
+            grid-column: span 2;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #2563eb;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        #result {
+            margin-top: 24px;
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 20px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-card">
+        <h2><i class="fa-solid fa-database"></i> 資料庫同步</h2>
+        <div class="form-section">
+            <div class="field-group">
+                <label>更新範圍</label>
+                <select id="scope">
+                    <option value="Single">單一股票</option>
+                    <option value="Common">常用股票</option>
+                    <option value="All">全部股票</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label>股票代號 (單一範圍時)</label>
+                <input type="text" id="specificStockId" placeholder="例如: 2330">
+            </div>
+            <div class="field-group">
+                <label>時間範圍</label>
+                <select id="time">
+                    <option value="SpecificYear">指定年份</option>
+                    <option value="FullHistory">全部歷史</option>
+                </select>
+            </div>
+            <div class="field-group">
+                <label>年份 (指定年份時)</label>
+                <input type="number" id="specificYear" value="2026">
+            </div>
+            <div class="checkbox-group">
+                <div class="checkbox-item"><input type="checkbox" name="dataType" value="PriceUpdater" checked> 股價</div>
+                <div class="checkbox-item"><input type="checkbox" name="dataType"
+                        value="ForeignShareHoldingUpdater">外資持股比例
+                </div>
+                <div class="checkbox-item"><input type="checkbox" name="dataType" value="DividendUpdater"> 股利</div>
+                <div class="checkbox-item"><input type="checkbox" name="dataType"
+                        value="InstitutionalInvestorsBuySellUpdater"> 三大法人買賣</div>
+            </div>
+            <button class="submit-btn" onclick="executeUpdate()">執行更新任務</button>
+        </div>
+        <div id="result">--- 系統日誌準備就緒 ---<br></div>
+    </div>
+    <script>
+        const apiBase = "http://localhost:7278";
+
+        // SignalR
+        const conn = new signalR.HubConnectionBuilder()
+            .withUrl("http://localhost:7278/stockUpdateHub", { withCredentials: true })
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        conn.on("Progress", msg => {
+            console.log("收到 Progress:", msg);
+            appendLog(msg);
+        });
+
+        conn.start()
+            .then(() => console.log("✅ SignalR 已連線"))
+            .catch(err => console.error("❌ SignalR 連線失敗", err));
+
+        // 依 Scope/Time 動態啟用輸入欄位
+        function refreshUiState() {
+
+            const stockPreset = document.getElementById("stockPreset");
+            const stockId = document.getElementById("stockId");
+            const startYear = document.getElementById("startYear");
+
+            // Scope
+            if (scope === "Single") {
+                stockPreset.disabled = false;
+                stockId.disabled = false;
+            } else {
+                // Common / All：不需要 specificStockId
+                stockPreset.disabled = true;
+                stockId.disabled = true;
+            }
+
+            // Time
+            if (time === "SpecificYear") {
+                startYear.disabled = false;
+            } else {
+                // FullHistory：不需要 specificYear
+                startYear.disabled = true;
+            }
+        }
+        // 對齊 HTML 中的 id="scope" 與 id="time"
+        function refreshUiState() {
+            const scope = document.getElementById("scope").value;
+            const time = document.getElementById("time").value;
+
+            const specificStockId = document.getElementById("specificStockId");
+            const specificYear = document.getElementById("specificYear");
+
+            // Scope 控制：只有 Single 時才啟用股票代號輸入
+            specificStockId.disabled = (scope !== "Single");
+
+            // Time 控制：只有 SpecificYear 時才啟用年份輸入
+            specificYear.disabled = (time !== "FullHistory" && time !== "SpecificYear") ? false : (time === "FullHistory");
+            // 簡化邏輯：
+            specificYear.disabled = (time === "FullHistory");
+        }
+
+        document.getElementById("scope").addEventListener("change", refreshUiState);
+        document.getElementById("time").addEventListener("change", refreshUiState);
+
+        function buildCommand() {
+            const scope = document.getElementById("scope").value;
+            const time = document.getElementById("time").value;
+            const stockId = document.getElementById("specificStockId").value?.trim();
+            const yearRaw = document.getElementById("specificYear").value;
+
+            // 收集所有勾選的資料類型 (Checkbox)
+            const selectedDataTypes = Array.from(document.querySelectorAll('input[name="dataType"]:checked'))
+                .map(cb => cb.value);
+
+            if (selectedDataTypes.length === 0) throw new Error("請至少選擇一種更新內容（股價、持股或股利）");
+
+            const cmd = {
+                scope: scope,
+                specificStockId: scope === "Single" ? stockId : null,
+                targetDataTypes: selectedDataTypes,
+                time: time,
+                specificYear: time === "SpecificYear" ? parseInt(yearRaw, 10) : null
+            };
+
+            if (scope === "Single" && !cmd.specificStockId) throw new Error("請輸入股票代號");
+            if (time === "SpecificYear" && isNaN(cmd.specificYear)) throw new Error("請輸入有效年份");
+
+            return cmd;
+        }
+
+        async function executeUpdate() {
+            let command;
+            try {
+                command = buildCommand();
+            } catch (e) {
+                alert(e.message);
+                return;
+            }
+
+            appendLog(formatCommand(command));
+
+            try {
+                const res = await fetch(`${apiBase}/stock/execute`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(command)
+                });
+
+                const text = await res.text();
+                appendLog(formatResponse(res.status, text));
+            } catch (err) {
+                console.error(err);
+                appendLog("✖ 更新請求送出失敗（請檢查 API 是否啟動 / CORS）");
+            }
+        }
+        function formatCommand(command) {
+            const scopeText = {
+                "Single": "單一股票",
+                "Common": "常用股票",
+                "All": "全部股票"
+            }[command.scope] ?? command.scope;
+
+            const timeText = {
+                "SpecificYear": "指定年份",
+                "FullHistory": "全部歷史"
+            }[command.time] ?? command.time;
+
+            const dataText = (command.targetDataTypes || [])
+                .map(x => x.replace("Updater", ""))
+                .join(", ");
+
+            let msg = `📤 開始更新 → 範圍: ${scopeText} | 類型: ${dataText} | 時間: ${timeText}`;
+
+            if (command.scope === "Single")
+                msg += ` | 股票: ${command.specificStockId}`;
+
+            if (command.time === "SpecificYear")
+                msg += ` | 年份: ${command.specificYear}`;
+
+            return msg;
+        }
+        function formatResponse(status, text) {
+            try {
+                const json = JSON.parse(text);
+
+                if (json.jobId)
+                    return `✅ 任務已建立 ${json.jobId}`;
+
+                return `⚠️ API 回應 (${status}): ${text}`;
+            }
+            catch {
+                return `⚠️ API 回應 (${status}): ${text}`;
+            }
+        }
+
+
+        // 頁面載入：排序 + 套預設狀態
+        // sortStockPreset();
+        refreshUiState();
+
+        function appendLog(msg) {
+            const res = document.getElementById("result");
+            res.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+            res.scrollTop = res.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

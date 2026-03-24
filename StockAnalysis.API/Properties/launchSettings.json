@@ -1,0 +1,43 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:35333",
+      "sslPort": 44301
+    }
+  },
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5274",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "https": { //設定檔名稱 不代表一定是 HTTPS 真正決定協定的是 👉 applicationUrl
+      "commandName": "Project", //用「直接執行這個 ASP.NET Core 專案」的方式啟動
+      "dotnetRunMessages": true, //啟動時在 Console 顯示：Now listening on: http://0.0.0.0:7278 Application started. Press Ctrl+C to shut down.
+      "launchBrowser": true, //啟動專案時會自動幫你開瀏覽器
+      "launchUrl": "swagger", //開瀏覽器時要開哪個路徑 EX:http://0.0.0.0:7278/swagger
+      //"applicationUrl": "https://localhost:7278;http://localhost:5274",
+      //"applicationUrl": "https://0.0.0.0:7278", // OK
+      "applicationUrl": "http://0.0.0.0:7278", // API 要「監聽哪個 IP + Port」=> (本機存在的 IP) + (該 IP 上尚未被占用的 Port)」
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
