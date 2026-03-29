@@ -212,7 +212,7 @@
             card.innerHTML = `
                 <div style="display:flex; justify-content:flex-end; margin-bottom:10px; align-items:center; position: relative;">
                     <strong style="font-size:1.2rem; color:#1e293b; position: absolute; left: 50%; transform: translateX(-50%);">
-                        ${stockId} - 綜合分析
+                        ${stockId} - K線分析
                     </strong>
                     <button class="btn-outline" style="padding:4px 8px;" onclick="document.getElementById('${cardId}').remove()">移除</button>
                 </div>                
@@ -331,7 +331,7 @@
                 yAxes.push({
                     type: 'value', gridIndex: gridIdx, splitLine: { show: false }, axisLabel: { formatter: (v) => formatFlowValue(v) }
                 });
-                series.push({ name: '成交量', type: 'bar', xAxisIndex: gridIdx, yAxisIndex: gridIdx, data: volData, barCategoryGap: '0%', itemStyle: { color: (p) => volColor[p.dataIndex] > 0 ? '#ef4444' : '#22c55e' } });
+                series.push({ name: '成交量', type: 'bar', xAxisIndex: gridIdx, yAxisIndex: gridIdx, data: volData, barCategoryGap: '15%', itemStyle: { color: (p) => volColor[p.dataIndex] > 0 ? '#ef4444' : '#22c55e' } });
                 currentTop += 100; gridIdx++;
             }
             // MACD 動態加入
@@ -349,7 +349,7 @@
                 series.push(
                     { name: 'DIF', type: 'line', xAxisIndex: gridIdx, yAxisIndex: gridIdx, data: difData, symbol: 'none', lineStyle: { width: 1, color: '#3b82f6' } },
                     { name: 'DEA', type: 'line', xAxisIndex: gridIdx, yAxisIndex: gridIdx, data: deaData, symbol: 'none', lineStyle: { width: 1, color: '#f59e0b' } },
-                    { name: 'MACD', type: 'bar', xAxisIndex: gridIdx, yAxisIndex: gridIdx, data: histData, barCategoryGap: '0%', itemStyle: { color: (p) => p.value >= 0 ? '#ef4444' : '#22c55e' } }
+                    { name: 'MACD', type: 'bar', xAxisIndex: gridIdx, yAxisIndex: gridIdx, data: histData, barCategoryGap: '15%', itemStyle: { color: (p) => p.value >= 0 ? '#ef4444' : '#22c55e' } }
                 );
                 currentTop += 90; gridIdx++;
             }
@@ -416,7 +416,7 @@
                     { type: 'value', gridIndex: gridIdx, scale: true, position: 'left', splitLine: { show: true }, axisLabel: { formatter: (v) => formatFlowValue(v) } }
                 );
                 series.push(
-                    { name: '外資買賣超', type: 'bar', xAxisIndex: gridIdx, yAxisIndex: yAxes.length - 1, data: foreignNetData, barCategoryGap: '0%', itemStyle: { color: (p) => p.value >= 0 ? '#ef4444' : '#22c55e' } },
+                    { name: '外資買賣超', type: 'bar', xAxisIndex: gridIdx, yAxisIndex: yAxes.length - 1, data: foreignNetData, barCategoryGap: '15%', itemStyle: { color: (p) => p.value >= 0 ? '#ef4444' : '#22c55e' } },
                     { name: '外資佔股比%', type: 'line', xAxisIndex: gridIdx, yAxisIndex: yAxes.length - 2, data: shareData, symbol: 'none', lineStyle: { width: 2, color: '#6366f1' } }
                 );
                 currentTop += 90; gridIdx++;
