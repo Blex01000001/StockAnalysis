@@ -39,6 +39,7 @@ namespace StockAnalysis.API.Controllers
             var result = await _kLineChartService.PrepareKLine(stockId, DateTime.ParseExact(start, "yyyyMMdd", null), DateTime.ParseExact(end, "yyyyMMdd", null))
                 .SetMaLine()
                 .SetMacd()
+                .SetRsi()
                 .SetInstitutional()
                 .SetBollingerBand()
                 .SetForeignInvestmentHolding()

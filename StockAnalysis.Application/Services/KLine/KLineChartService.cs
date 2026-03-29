@@ -78,6 +78,7 @@ namespace StockAnalysis.Application.Services.KLine
             StockInfoDto stockInfo = await _stockMetadataRepository.GetStockInfoAsync(stockId);
             var builder = new KLineChartBuilder(stockId, stockInfo.CompanyShortName, pricesTask.Result, startIndex);
 
+            if (req.IncludeRsi) builder.SetRsi();
             if (req.IncludeMa) builder.SetMaLine();
             if (req.IncludeMacd) builder.SetMacd();
             if (req.IncludeBollinger) builder.SetBollingerBand();

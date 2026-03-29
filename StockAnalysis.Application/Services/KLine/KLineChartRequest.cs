@@ -20,6 +20,7 @@ namespace StockAnalysis.Application.Services.KLine
         private bool _includeBollinger = false;
         private bool _includeHoldings = false;
         private bool _includeInstitutional = false;
+        private bool _includeRsi = false;
 
         // 使用 internal，讓 Service 可以讀取，但外部 Controller 看不到
         internal bool IncludeMa 
@@ -42,10 +43,15 @@ namespace StockAnalysis.Application.Services.KLine
             get { return _includeHoldings; } 
             private set { _includeHoldings = value; } 
         }
-        internal bool IncludeInstitutional 
-        { 
-            get { return _includeInstitutional; } 
-            private set { _includeInstitutional = value; } 
+        internal bool IncludeInstitutional
+        {
+            get { return _includeInstitutional; }
+            private set { _includeInstitutional = value; }
+        }
+        internal bool IncludeRsi
+        {
+            get { return _includeRsi; }
+            private set { _includeRsi = value; }
         }
         public KLineChartRequest(IKLineChartService service, string stockId, DateTime start, DateTime end)
         {
@@ -54,10 +60,15 @@ namespace StockAnalysis.Application.Services.KLine
             _start = start;
             _end = end;
         }
-        public KLineChartRequest SetMaLine() 
-        { 
-            _includeMa = true; 
-            return this; 
+        public KLineChartRequest SetRsi()
+        {
+            _includeRsi = true;
+            return this;
+        }
+        public KLineChartRequest SetMaLine()
+        {
+            _includeMa = true;
+            return this;
         }
         public KLineChartRequest SetMacd() 
         { 
