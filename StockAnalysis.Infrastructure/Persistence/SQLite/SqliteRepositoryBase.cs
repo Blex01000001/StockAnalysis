@@ -45,17 +45,12 @@ namespace StockAnalysis.Infrastructure.Persistence.SQLite
 
             return result;
         }
-        protected Query QueryBuilder(string stockId, string? start, string? end)
+        protected Query QueryBuilder(string stockId, DateTime start, DateTime end)
         {
             var q = new Query("StockDailyPrice")
                 .Where("StockId", stockId);
-
-            if (!string.IsNullOrWhiteSpace(start))
-                q.Where("TradeDate", ">=", DateTime.ParseExact(start, "yyyyMMdd", null));
-
-            if (!string.IsNullOrWhiteSpace(end))
-                q.Where("TradeDate", "<=", DateTime.ParseExact(end, "yyyyMMdd", null));
-
+            q.Where("TradeDate", ">=", start);
+            q.Where("TradeDate", "<=", end);
             return q;
 
         }

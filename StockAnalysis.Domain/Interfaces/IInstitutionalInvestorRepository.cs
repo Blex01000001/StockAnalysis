@@ -9,9 +9,9 @@ namespace StockAnalysis.Domain.Interfaces
 {
     public interface IInstitutionalInvestorRepository
     {
-        Task<List<StockInstitutionalInvestorsBuySell>> GetDailyTradesAsync(string stockId, string start, string end);
+        Task<List<StockInstitutionalInvestorsBuySell>> GetDailyTradesAsync(string stockId, DateTime start, DateTime end);
         Task UpsertDailyTradesAsync(List<StockInstitutionalInvestorsBuySell> trades);
-        Task<List<StockShareholding>> GetShareHoldingsAsync(string stockId, string start, string end);
+        Task<List<StockShareholding>> GetShareHoldingsAsync(string stockId, DateTime start, DateTime end);
         Task UpsertGetShareHoldingsAsync(List<StockShareholding> ownerships);
     }
 }

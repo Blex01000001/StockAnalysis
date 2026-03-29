@@ -98,8 +98,8 @@
 
         /* 圖表容器 */
         .chart-mini-container {
-            width: 300px;
-            height: 160px;
+            width: 600px;
+            height: 300px;
             margin: 0 auto;
         }
 
@@ -209,8 +209,8 @@
             const myChart = echarts.init(chartDom);
 
             // 聚焦天數
-            const preDays = 10;
-            const furDays = 20;
+            const preDays = 40;
+            const furDays = 40;
             const startIdx = Math.max(0, match.endIndex - preDays);
             const endIdx = Math.min(chartDto.points.length - 1, match.endIndex + furDays);
 

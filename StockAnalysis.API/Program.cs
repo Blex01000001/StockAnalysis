@@ -8,6 +8,12 @@ using System.Text.Json.Serialization;
 using StockAnalysis.Application.Services.JobLogger;
 using StockAnalysis.Infrastructure.FileLogger;
 using StockAnalysis.API.Hubs;
+using StockAnalysis.Application.Services.PatternRecognition;
+using StockAnalysis.Application.Services.Adjustment;
+using StockAnalysis.Application.Services.KLine;
+using StockAnalysis.Application.Services.PatternRecognition.PatternType;
+using StockAnalysis.Application.Services.PriceService;
+using StockAnalysis.Application.Services.KLineDataProcessor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,12 +34,20 @@ builder.Services.AddScoped<IDataUpdater, PriceUpdater>();
 builder.Services.AddScoped<IStockMetadataRepository, StockMetadataRepository>();
 builder.Services.AddScoped<ITradeDataRepository, TradeDataRepository>();
 builder.Services.AddScoped<IJobLogger, StockUpdateJobLogger>();
-
+builder.Services.AddScoped<IPatternRecognitionService, PatternRecognitionService>();
+builder.Services.AddScoped<IKLineChartService, KLineChartService>();
+builder.Services.AddScoped<IPriceAdjustmentService, PriceAdjustmentService>();
+builder.Services.AddScoped<IDividendAdjustmentService, DividendAdjustmentService>();
+builder.Services.AddScoped<IInstitutionalInvestorsAdjustmentService, InstitutionalInvestorsAdjustmentService>();
+builder.Services.AddScoped<IKLinePattern, BullishEngulfingPattern>();
+builder.Services.AddScoped<IInstitutionalInvestorRepository, InstitutionalInvestorRepository>();
+builder.Services.AddScoped<IPriceService, PriceService>();
+builder.Services.AddScoped<IKLineDataProcessorService, KLineDataProcessorService>();
 
 // 註冊 CORS 服務，這裡先定義一個全開的 Policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DevCors", policy =>
+    options.AddPolicy(name:"DevCors", policy =>
     {
         policy//.AllowAnyOrigin() //允許全部
             .WithOrigins(

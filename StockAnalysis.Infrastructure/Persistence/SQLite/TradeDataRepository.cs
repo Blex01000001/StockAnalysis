@@ -15,7 +15,7 @@ namespace StockAnalysis.Infrastructure.Persistence.SQLite
             EnsurePriceTable();
             EnsureDividendTable();
         }
-        public Task<List<StockDailyPrice>> GetDailyPricesAsync(string stockId, string start, string end)
+        public Task<List<StockDailyPrice>> GetDailyPricesAsync(string stockId, DateTime start, DateTime end)
         {
             Query query = QueryBuilder(stockId, start, end);
             return QueryAsync(query, reader => new StockDailyPrice

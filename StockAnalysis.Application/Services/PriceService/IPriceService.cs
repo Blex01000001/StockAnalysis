@@ -9,6 +9,6 @@ namespace StockAnalysis.Application.Services.PriceService
 {
     public interface IPriceService
     {
-        Task<List<StockDailyPrice>> GetPricesAsync(string id, string start, string end, bool adjusted = false);
+        Task<List<StockDailyPrice>> GetPricesAsync(string id, DateTime start, DateTime end, bool adjusted = false);
     }
 }

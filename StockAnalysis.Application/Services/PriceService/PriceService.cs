@@ -13,7 +13,13 @@ namespace StockAnalysis.Application.Services.PriceService
     {
         private readonly ITradeDataRepository _tradeDataRepository;
         private readonly IPriceAdjustmentService _priceAdjustmentService;
-        public async Task<List<StockDailyPrice>> GetPricesAsync(string id, string start, string end, bool adjusted = false)
+
+        public PriceService(ITradeDataRepository tradeDataRepository, IPriceAdjustmentService priceAdjustmentService)
+        {
+            _tradeDataRepository = tradeDataRepository;
+            _priceAdjustmentService = priceAdjustmentService;
+        }
+        public async Task<List<StockDailyPrice>> GetPricesAsync(string id, DateTime start, DateTime end, bool adjusted = false)
         {
             List<StockDailyPrice> rawPrices = await _tradeDataRepository.GetDailyPricesAsync(id, start, end);
             if(!adjusted) return rawPrices;

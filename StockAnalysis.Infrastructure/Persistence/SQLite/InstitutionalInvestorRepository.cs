@@ -18,7 +18,7 @@ namespace StockAnalysis.Infrastructure.Persistence.SQLite
             EnsureInstitutionalInvestorsBuySellTable();
             EnsureShareHoldingTable();
         }
-        public Task<List<StockInstitutionalInvestorsBuySell>> GetDailyTradesAsync(string stockId, string start, string end)
+        public Task<List<StockInstitutionalInvestorsBuySell>> GetDailyTradesAsync(string stockId, DateTime start, DateTime end)
         {
             Query query = new Query("StockInstitutionalInvestorsBuySell").Where("StockId", stockId);
             return QueryAsync(query, reader => new StockInstitutionalInvestorsBuySell
@@ -68,7 +68,7 @@ namespace StockAnalysis.Infrastructure.Persistence.SQLite
                 });
 
         }
-        public Task<List<StockShareholding>> GetShareHoldingsAsync(string stockId, string start, string end)
+        public Task<List<StockShareholding>> GetShareHoldingsAsync(string stockId, DateTime start, DateTime end)
         {
             Query query = new Query("StockShareholding").Where("StockId", stockId);
             return QueryAsync(query, reader => new StockShareholding
